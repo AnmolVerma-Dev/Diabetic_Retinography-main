@@ -85,6 +85,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnNewScreening = document.getElementById('btnNewScreening');
     const btnPrintReport = document.getElementById('btnPrintReport');
     const btnCopyJson = document.getElementById('btnCopyJson');
+    const btnDownloadPdfReport = document.getElementById('btnDownloadPdfReport');
+    const btnOpenReportModal = document.getElementById('btnOpenReportModal');
+
+    // Hero Quick PDF Buttons
+    const btnHeroDownloadPdf = document.getElementById('btnHeroDownloadPdf');
+    const btnHeroCustomizePdf = document.getElementById('btnHeroCustomizePdf');
+
+    // Medical Report Modal Elements
+    const reportModalBackdrop = document.getElementById('reportModalBackdrop');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    const modalCancelBtn = document.getElementById('modalCancelBtn');
+    const modalGenerateBtn = document.getElementById('modalGenerateBtn');
+    const modalGrade = document.getElementById('modalGrade');
+    const modalConfidence = document.getElementById('modalConfidence');
+    const modalQuality = document.getElementById('modalQuality');
+    const modalReportId = document.getElementById('modalReportId');
+
+    // Modal Form Inputs
+    const reportPatientName = document.getElementById('reportPatientName');
+    const reportPatientId = document.getElementById('reportPatientId');
+    const reportAgeSex = document.getElementById('reportAgeSex');
+    const reportEye = document.getElementById('reportEye');
+    const reportClinician = document.getElementById('reportClinician');
+    const reportLicense = document.getElementById('reportLicense');
+    const reportFacility = document.getElementById('reportFacility');
+    const reportNotes = document.getElementById('reportNotes');
 
     // =========================================================================
     // 2. CLINICAL STAGE DESCRIPTIONS (ICDR ALIGNED)
@@ -562,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // =========================================================================
-    // 11. DASHBOARD ACTIONS (NEW SCREENING, PRINT, COPY JSON)
+    // 11. DASHBOARD ACTIONS (NEW SCREENING, PRINT, COPY JSON, PDF REPORT)
     // =========================================================================
     btnNewScreening.addEventListener('click', () => {
         resetUploadState();
@@ -586,6 +612,122 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Clipboard access denied', 'error');
         }
     });
+
+    // -------------------------------------------------------------------------
+    // PDF MEDICAL REPORT GENERATION HANDLERS
+    // -------------------------------------------------------------------------
+    async function executePdfGeneration(customPatientInfo = {}) {
+        if (!state.lastResultData) {
+            showToast('Please execute an image screening before generating a report.', 'error');
+            return;
+        }
+
+        if (!window.ReportGenerator) {
+            showToast('Report generator module is loading, please try again.', 'error');
+            return;
+        }
+
+        showToast('Compiling Clinical PDF Medical Report...', 'info');
+
+        try {
+            const result = await window.ReportGenerator.generatePdfReport({
+                analysisData: state.lastResultData,
+                imageUrl: state.currentImageUrl,
+                patientInfo: customPatientInfo
+            });
+
+            if (result && result.success) {
+                showToast(`Report generated: ${result.filename}`, 'success');
+            }
+        } catch (err) {
+            console.error('PDF Report generation error:', err);
+            showToast(`Report generation failed: ${err.message}`, 'error');
+        }
+    }
+
+    function openReportModal() {
+        if (!state.lastResultData) {
+            showToast('Please analyze an image first to generate a report.', 'error');
+            return;
+        }
+
+        const pred = state.lastResultData.prediction || {};
+        const q = state.lastResultData.quality || {};
+        const grade = pred.grade || 'No DR';
+        const confPct = ((pred.confidence || 0) * 100).toFixed(1);
+        const qScore = q.score !== undefined ? `${Math.round(q.score * 100)}%` : '85%';
+        const qStatus = (q.status || 'Acceptable').toUpperCase();
+
+        const now = new Date();
+        const genId = `RG-${now.toISOString().split('T')[0].replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+        if (modalGrade) modalGrade.textContent = grade;
+        if (modalConfidence) modalConfidence.textContent = `${confPct}%`;
+        if (modalQuality) modalQuality.textContent = `${qStatus} (${qScore})`;
+        if (modalReportId) modalReportId.textContent = genId;
+
+        // Set default report ID if empty
+        if (reportPatientId && !reportPatientId.value) {
+            reportPatientId.value = `PT-${Math.floor(100000 + Math.random() * 900000)}`;
+        }
+
+        if (reportModalBackdrop) {
+            reportModalBackdrop.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeReportModal() {
+        if (reportModalBackdrop) {
+            reportModalBackdrop.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Connect 1-Click Direct Download Buttons
+    if (btnHeroDownloadPdf) {
+        btnHeroDownloadPdf.addEventListener('click', () => executePdfGeneration());
+    }
+    if (btnDownloadPdfReport) {
+        btnDownloadPdfReport.addEventListener('click', () => executePdfGeneration());
+    }
+
+    // Connect Modal Triggers
+    if (btnHeroCustomizePdf) {
+        btnHeroCustomizePdf.addEventListener('click', openReportModal);
+    }
+    if (btnOpenReportModal) {
+        btnOpenReportModal.addEventListener('click', openReportModal);
+    }
+
+    // Modal Close buttons & Backdrop click
+    if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeReportModal);
+    if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeReportModal);
+    if (reportModalBackdrop) {
+        reportModalBackdrop.addEventListener('click', (e) => {
+            if (e.target === reportModalBackdrop) closeReportModal();
+        });
+    }
+
+    // Modal Generate Action
+    if (modalGenerateBtn) {
+        modalGenerateBtn.addEventListener('click', () => {
+            const customInfo = {
+                reportId: modalReportId ? modalReportId.textContent : undefined,
+                patientName: reportPatientName ? reportPatientName.value.trim() : '',
+                patientId: reportPatientId ? reportPatientId.value.trim() : '',
+                patientAgeSex: reportAgeSex ? reportAgeSex.value.trim() : '',
+                eyeExamined: reportEye ? reportEye.value : 'Right Eye (OD)',
+                clinician: reportClinician ? reportClinician.value.trim() : '',
+                licenseNo: reportLicense ? reportLicense.value.trim() : '',
+                facility: reportFacility ? reportFacility.value.trim() : '',
+                clinicalNotes: reportNotes ? reportNotes.value.trim() : ''
+            };
+
+            closeReportModal();
+            executePdfGeneration(customInfo);
+        });
+    }
 
     // =========================================================================
     // 12. NAVIGATION & SMOOTH SCROLLING

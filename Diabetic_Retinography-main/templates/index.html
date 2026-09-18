@@ -558,6 +558,36 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Quick PDF Report Action Strip -->
+                        <div class="result-quick-report-bar">
+                            <div class="quick-report-info">
+                                <span class="report-badge-pulse">
+                                    <span class="pulse-dot"></span>
+                                    AI SCREENING REPORT READY
+                                </span>
+                                <span class="quick-report-text">Full A4 Clinical Screening Report is compiled with embedded fundus scan, 5-tier ICDR probabilities, and physician validation block.</span>
+                            </div>
+                            <div class="quick-report-actions">
+                                <button type="button" class="btn btn-report-cta" id="btnHeroDownloadPdf" title="Instant 1-Click PDF Report Download">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                                        <polyline points="10 9 9 9 8 9"></polyline>
+                                    </svg>
+                                    <span>Download PDF Medical Report</span>
+                                </button>
+                                <button type="button" class="btn btn-report-outline" id="btnHeroCustomizePdf" title="Edit Patient & Clinician Metadata">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                    <span>Customize Patient Info</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Secondary Analytics Grid -->
@@ -769,6 +799,25 @@
                             <span>Screen Another Image</span>
                         </button>
 
+                        <button type="button" class="btn btn-primary btn-glow btn-pdf-highlight" id="btnDownloadPdfReport">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            <span>Download PDF Medical Report</span>
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" id="btnOpenReportModal">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            <span>Customize Report Info</span>
+                        </button>
+
                         <button type="button" class="btn btn-secondary" id="btnPrintReport">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                                 <polyline points="6 9 6 2 18 2 18 9"></polyline>
@@ -883,9 +932,121 @@
         </div>
     </footer>
 
+    <!-- Clinical PDF Report Customization Modal -->
+    <div class="modal-backdrop hidden" id="reportModalBackdrop">
+        <div class="modal-dialog glass-panel" id="reportModal">
+            <div class="modal-header">
+                <div class="modal-title-wrap">
+                    <div class="modal-badge-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title">Clinical Medical Report Generator</h3>
+                        <p class="modal-subtitle">Configure patient metadata and clinical observations for the official PDF report.</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" id="modalCloseBtn" aria-label="Close modal">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Live Diagnostic Summary Chip -->
+                <div class="modal-diagnostic-summary" id="modalDiagSummary">
+                    <div class="diag-summary-col">
+                        <span class="diag-label">CURRENT DIAGNOSIS</span>
+                        <span class="diag-value" id="modalGrade">Moderate DR</span>
+                    </div>
+                    <div class="diag-summary-col">
+                        <span class="diag-label">MATCH CONFIDENCE</span>
+                        <span class="diag-value" id="modalConfidence">87.4%</span>
+                    </div>
+                    <div class="diag-summary-col">
+                        <span class="diag-label">QUALITY GATE</span>
+                        <span class="diag-value" id="modalQuality">Acceptable (85%)</span>
+                    </div>
+                    <div class="diag-summary-col">
+                        <span class="diag-label">REPORT ID</span>
+                        <span class="diag-value" id="modalReportId">RG-2026-XXXX</span>
+                    </div>
+                </div>
+
+                <form id="reportForm" class="modal-form" onsubmit="return false;">
+                    <div class="form-row two-cols">
+                        <div class="form-group">
+                            <label class="form-label" for="reportPatientName">Patient Full Name</label>
+                            <input type="text" id="reportPatientName" class="form-input" placeholder="e.g. John Doe (or leave blank for Anonymous)">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reportPatientId">Patient ID / MRN</label>
+                            <input type="text" id="reportPatientId" class="form-input" placeholder="e.g. PT-84920 (auto-generated if empty)">
+                        </div>
+                    </div>
+
+                    <div class="form-row three-cols">
+                        <div class="form-group">
+                            <label class="form-label" for="reportAgeSex">Age / Biological Sex</label>
+                            <input type="text" id="reportAgeSex" class="form-input" placeholder="e.g. 58 / Male">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reportEye">Examined Eye</label>
+                            <select id="reportEye" class="form-select">
+                                <option value="Right Eye (OD)" selected>Right Eye (OD)</option>
+                                <option value="Left Eye (OS)">Left Eye (OS)</option>
+                                <option value="Bilateral (OU)">Bilateral (OU)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reportClinician">Examining Clinician</label>
+                            <input type="text" id="reportClinician" class="form-input" placeholder="e.g. Dr. A. Sharma, MD">
+                        </div>
+                    </div>
+
+                    <div class="form-row two-cols">
+                        <div class="form-group">
+                            <label class="form-label" for="reportLicense">Medical License / Reg No.</label>
+                            <input type="text" id="reportLicense" class="form-input" placeholder="e.g. REG # OPHTH-2026-MED">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reportFacility">Facility / Department</label>
+                            <input type="text" id="reportFacility" class="form-input" placeholder="e.g. Retina Clinic & Telemedicine">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reportNotes">Clinical Observations & Impressions (Optional)</label>
+                        <textarea id="reportNotes" class="form-textarea" rows="2" placeholder="e.g. Type-2 Diabetes mellitus x 12 yrs. Follow-up screening. Macula appears gross intact."></textarea>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
+                <button type="button" class="btn btn-primary btn-glow" id="modalGenerateBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>Download Official PDF Report</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification Container -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <!-- Vendor: jsPDF Client-Side Engine -->
+    <script src="{{ url_for('static', filename='js/jspdf.umd.min.js') }}"></script>
+    <!-- Clinical Medical Report Generator -->
+    <script src="{{ url_for('static', filename='js/report_generator.js') }}"></script>
     <!-- Core Application Logic -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
